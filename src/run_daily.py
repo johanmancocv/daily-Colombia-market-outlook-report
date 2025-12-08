@@ -148,18 +148,23 @@ def main():
 
     body_short = f"""📌 PROMPT PARA CHATGPT (ver adjunto)
 
+Hola, soy Johan. Te comparto un prompt con contexto del día sobre mercados/finanzas para que lo pegues en ChatGPT y obtengas un análisis actualizado.
+
 1) Abre el adjunto: prompt_for_chatgpt.txt
 2) Copia y pega TODO en ChatGPT
 3) (Opcional) Revisa el adjunto latest_digest.txt para ver las noticias y links
 
-Movimientos de mercado (as_of={as_of}) ya están incluidos dentro del prompt adjunto.
+Si prefieres recibir el análisis completo ya redactado (sin abrir archivos ni copiar/pegar), existe una opción de suscripción/servicio pago para automatizar ese paso. Si te interesa, dime y te comparto los detalles.
+
+Disclaimer/Aviso legal: Contenido educativo/informativo, no es asesoría financiera. Decisiones bajo tu responsabilidad. Si quieres un análisis más detallado, escríbeme.
+
+Movimientos de mercado (Al día de hoy={as_of}) ya están incluidos dentro del prompt adjunto.
 """
 
     # ✅ Envío 1 a 1 (nadie ve a quién más se envió)
     recipients = [
         "eljj.personal@gmail.com",
-        "alexandermanco@gmail.com",
-        "zharicksalasf@gmail.com",
+    
         
     ]
 
