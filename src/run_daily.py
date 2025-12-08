@@ -164,7 +164,8 @@ Movimientos de mercado (Al día de hoy={as_of}) ya están incluidos dentro del p
     # ✅ Envío 1 a 1 (nadie ve a quién más se envió)
     recipients = [
         "eljj.personal@gmail.com",
-    
+        "alexandermanco@gmail.com",
+        "zharicksalasf@gmail.com",
         
     ]
 
