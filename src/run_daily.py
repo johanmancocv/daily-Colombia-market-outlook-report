@@ -1,3 +1,4 @@
+cat > src/run_daily.py << 'EOF'
 from datetime import datetime
 from pathlib import Path
 import json
@@ -67,11 +68,9 @@ def main():
     reports = Path("reports")
     reports.mkdir(exist_ok=True)
 
-    # latest
     (reports / "latest_digest.md").write_text(digest_md, encoding="utf-8")
     (reports / "prompt_for_chatgpt.txt").write_text(prompt_txt, encoding="utf-8")
 
-    # dated copies
     (reports / f"{as_of}_digest.md").write_text(digest_md, encoding="utf-8")
     (reports / f"{as_of}_prompt_for_chatgpt.txt").write_text(prompt_txt, encoding="utf-8")
 
@@ -81,3 +80,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+EOF
