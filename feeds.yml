@@ -1,16 +1,45 @@
 feeds:
+  # --- Global (RSS oficiales) ---
   - name: "BBC Business"
-    region: "EU"
+    region: "GLOBAL"
     topic: "macro"
     url: "https://feeds.bbci.co.uk/news/business/rss.xml"
 
+  # WSJ tiene directorio de RSS (según sección) — el tuyo funciona para markets
   - name: "WSJ Markets"
     region: "US"
     topic: "markets"
     url: "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
 
-  # FT supports RSS via news-feed format=rss (may require access depending on region/subscription)
-  - name: "FT News Feed"
+  # FT RSS (puede depender de región/suscripción)
+  - name: "Financial Times (News Feed)"
     region: "EU"
     topic: "markets"
     url: "https://www.ft.com/news-feed?format=rss"
+
+  # --- Colombia (RSS oficiales) ---
+  - name: "Portafolio - Economía"
+    region: "CO"
+    topic: "macro"
+    url: "http://portafolio.co/rss/economia.xml"
+
+  - name: "Portafolio - Finanzas"
+    region: "CO"
+    topic: "markets"
+    url: "http://portafolio.co/rss/economia/finanzas.xml"
+
+  - name: "Portafolio - Negocios"
+    region: "CO"
+    topic: "business"
+    url: "http://portafolio.co/rss/negocios.xml"
+
+  # BanRep (tienes dos opciones útiles)
+  - name: "BanRep - Noticias (listado RSS)"
+    region: "CO"
+    topic: "policy"
+    url: "https://www.banrep.gov.co/es/noticias-rss"
+
+  - name: "BanRep - Blog (RSS 2.0)"
+    region: "CO"
+    topic: "policy"
+    url: "https://www.banrep.gov.co/rss-blog.xml"
