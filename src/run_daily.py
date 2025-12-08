@@ -142,11 +142,27 @@ def main():
     # 7) Build prompt
     prompt_txt = build_chatgpt_prompt(digest_md=digest_md, moves=moves_doc)
 
-    # 7.5) Send email
+    # 7.5) Send email (cuerpo corto + adjuntos para evitar recortes de Gmail)
+    digest_bytes = digest_md.encode("utf-8")
+    prompt_bytes = prompt_txt.encode("utf-8")
+
+    body_short = f"""📌 PROMPT PARA CHATGPT (ver adjunto)
+
+1) Abre el adjunto: prompt_for_chatgpt.txt
+2) Copia y pega TODO en ChatGPT
+3) (Opcional) Revisa el adjunto latest_digest.txt para ver las noticias y links
+
+Movimientos de mercado (as_of={as_of}) ya están incluidos dentro del prompt adjunto.
+"""
+
     send_email(
         subject=f"📈 Prompt de Mercados Colombia — {as_of}",
-        body=prompt_txt,
+        body=body_short,
         to_emails=["eljj.personal@gmail.com"],
+        attachments=[
+            ("prompt_for_chatgpt.txt", prompt_bytes, "text/plain"),
+            ("latest_digest.txt", digest_bytes, "text/plain"),
+        ],
     )
     print("OK -> email enviado a eljj.personal@gmail.com")
 
