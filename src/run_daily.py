@@ -121,7 +121,7 @@ def main():
         print(f"⚠️ market_moves falló (se continúa igual): {e}", flush=True)
 
     # 4.1) Load moves + as_of
-    moves_doc = load_moves(str(moves_path))
+    moves_doc = load_moves(moves_path)
     as_of = moves_doc.get("as_of") if isinstance(moves_doc, dict) else None
     if not as_of:
         as_of = datetime.utcnow().date().isoformat()
