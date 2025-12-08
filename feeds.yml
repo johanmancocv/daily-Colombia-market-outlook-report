@@ -86,55 +86,55 @@ feeds:
     url: "https://news.google.com/rss/search?q=(TRM%20OR%20%22d%C3%B3lar%20en%20Colombia%22%20OR%20USD%2FCOP%20OR%20%22peso%20colombiano%22)%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
   # ---- Colombia: BanRep / tasas / política monetaria ----
-  - name: "GoogleNews CO - Banco de la República (tasas, junta) 14d"
+  - name: "GoogleNews CO - Banco de la República (tasas, junta) 1d"
     region: "CO"
     topic: "policy"
-    url: "https://news.google.com/rss/search?q=(%22Banco%20de%20la%20Rep%C3%BAblica%22%20OR%20BanRep)%20(tasa%20OR%20tasas%20OR%20junta%20OR%20inflaci%C3%B3n)%20when:14d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=(%22Banco%20de%20la%20Rep%C3%BAblica%22%20OR%20BanRep)%20(tasa%20OR%20tasas%20OR%20junta%20OR%20inflaci%C3%B3n)%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
   # ---- Colombia: macro (inflación, PIB, empleo) ----
-  - name: "GoogleNews CO - Inflación / IPC / tasas 7d"
+  - name: "GoogleNews CO - Inflación / IPC / tasas 1d"
     region: "CO"
     topic: "macro"
-    url: "https://news.google.com/rss/search?q=(inflaci%C3%B3n%20OR%20IPC%20OR%20%22costo%20de%20vida%22)%20Colombia%20when:7d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=(inflaci%C3%B3n%20OR%20IPC%20OR%20%22costo%20de%20vida%22)%20Colombia%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
-  - name: "GoogleNews CO - PIB / crecimiento / actividad económica 30d"
+  - name: "GoogleNews CO - PIB / crecimiento / actividad económica 1d"
     region: "CO"
     topic: "macro"
-    url: "https://news.google.com/rss/search?q=(PIB%20OR%20crecimiento%20OR%20%22actividad%20econ%C3%B3mica%22)%20Colombia%20when:30d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=(PIB%20OR%20crecimiento%20OR%20%22actividad%20econ%C3%B3mica%22)%20Colombia%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
-  - name: "GoogleNews CO - Empleo / desempleo / salarios 30d"
+  - name: "GoogleNews CO - Empleo / desempleo / salarios 1d"
     region: "CO"
     topic: "macro"
-    url: "https://news.google.com/rss/search?q=(empleo%20OR%20desempleo%20OR%20salario%20m%C3%ADnimo)%20Colombia%20when:30d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=(empleo%20OR%20desempleo%20OR%20salario%20m%C3%ADnimo)%20Colombia%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
   # ---- Colombia: petróleo / energía (muy relevante por Ecopetrol) ----
-  - name: "GoogleNews CO - Ecopetrol 14d"
+  - name: "GoogleNews CO - Ecopetrol 1d"
     region: "CO"
     topic: "companies"
-    url: "https://news.google.com/rss/search?q=Ecopetrol%20when:14d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=Ecopetrol%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
-  - name: "GoogleNews CO - Petróleo Brent + Colombia 7d"
+  - name: "GoogleNews CO - Petróleo Brent + Colombia 1d"
     region: "CO"
     topic: "commodities"
-    url: "https://news.google.com/rss/search?q=(Brent%20OR%20petr%C3%B3leo)%20Colombia%20when:7d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=(Brent%20OR%20petr%C3%B3leo)%20Colombia%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
   # ---- Colombia: bancos (sensibles a tasas y riesgo) ----
-  - name: "GoogleNews CO - Bancolombia + Grupo Aval + Davivienda 14d"
+  - name: "GoogleNews CO - Bancolombia + Grupo Aval + Davivienda 1d"
     region: "CO"
     topic: "banks"
-    url: "https://news.google.com/rss/search?q=(Bancolombia%20OR%20%22Grupo%20Aval%22%20OR%20Davivienda)%20when:14d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=(Bancolombia%20OR%20%22Grupo%20Aval%22%20OR%20Davivienda)%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
   # ---- Colombia: holdings/industriales del COLCAP ----
-  - name: "GoogleNews CO - Grupo Sura / Argos / Nutresa / ISA 30d"
+  - name: "GoogleNews CO - Grupo Sura / Argos / Nutresa / ISA 1d"
     region: "CO"
     topic: "companies"
-    url: "https://news.google.com/rss/search?q=(%22Grupo%20Sura%22%20OR%20%22Cementos%20Argos%22%20OR%20Nutresa%20OR%20ISA)%20when:30d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=(%22Grupo%20Sura%22%20OR%20%22Cementos%20Argos%22%20OR%20Nutresa%20OR%20ISA)%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
   # ---- Colombia: riesgo país / bonos / CDS ----
-  - name: "GoogleNews CO - Riesgo país / CDS / bonos Colombia 30d"
+  - name: "GoogleNews CO - Riesgo país / CDS / bonos Colombia 1d"
     region: "CO"
     topic: "rates"
-    url: "https://news.google.com/rss/search?q=(%22riesgo%20pa%C3%ADs%22%20OR%20CDS%20OR%20bonos)%20Colombia%20when:30d&hl=es-419&gl=CO&ceid=CO:es-419"
+    url: "https://news.google.com/rss/search?q=(%22riesgo%20pa%C3%ADs%22%20OR%20CDS%20OR%20bonos)%20Colombia%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
   # -----------------------
   # FALLBACK (Google News RSS)
   # Útil para: Bloomberg, Economist, Bloomberg Línea, La República, Cambio, El Espectador, etc.
