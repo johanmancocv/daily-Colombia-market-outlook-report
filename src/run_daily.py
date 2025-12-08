@@ -8,6 +8,7 @@ from store import connect, upsert_articles, latest_articles
 from ingest import load_feeds, fetch_rss_items
 from extract import now_iso
 from prompt_builder import build_chatgpt_prompt
+from emailer import send_email
 
 from digest import dedupe_articles, group_articles, digest_markdown
 
@@ -37,11 +38,13 @@ POSITIVE_PATTERNS = [
 NEG_RE = re.compile("|".join(NEGATIVE_PATTERNS), re.IGNORECASE)
 POS_RE = re.compile("|".join(POSITIVE_PATTERNS), re.IGNORECASE)
 
-# Optional: drop obvious duplicates/trackers in URLs
+# Optional: drop obvious tracking params in URLs
 URL_NOISE_PATTERNS = [
-    r"utm_source=",
-    r"utm_medium=",
-    r"utm_campaign=",
+    "utm_source=",
+    "utm_medium=",
+    "utm_campaign=",
+    "utm_term=",
+    "utm_content=",
 ]
 
 
@@ -60,20 +63,15 @@ def is_noise_item(item: dict) -> bool:
     if NEG_RE.search(hay):
         return True
 
-    # If neither positive nor negative matched:
-    # Keep by default (conservative), OR be stricter:
-    # return True  # <- stricter mode
+    # If neither positive nor negative matched, keep (conservative).
     return False
 
 
 def clean_url(url: str) -> str:
     if not url:
         return url
-    # quick cleanup: remove common utm parameters (optional)
-    # (simple approach; not perfect but fine)
     for pat in URL_NOISE_PATTERNS:
         if pat in url:
-            # If URL has ?, strip query entirely
             return url.split("?", 1)[0]
     return url
 
@@ -98,10 +96,12 @@ def main():
     for it in rss_items:
         it = dict(it)
         it["url"] = clean_url(it.get("url", ""))
+
         if not it.get("title") or not it.get("url"):
             continue
         if is_noise_item(it):
             continue
+
         filtered.append(it)
 
     # 2) DO NOT extract full text (faster + less blocking)
@@ -129,6 +129,14 @@ def main():
 
     # 7) Build the prompt for ChatGPT copy/paste
     prompt_txt = build_chatgpt_prompt(digest_md=digest_md, moves=moves_doc)
+
+    # ✅ 7.5) Send email with the prompt
+    send_email(
+        subject=f"📈 Colombia Market Prompt — {as_of}",
+        body=prompt_txt,
+        to_emails=["eljj.personal@gmail.com"],
+    )
+    print("OK -> email enviado a eljj.personal@gmail.com")
 
     # 8) Write outputs
     reports = Path("reports")
