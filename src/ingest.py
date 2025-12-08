@@ -1,24 +1,50 @@
+from __future__ import annotations
+
 from typing import List, Dict, Any
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import yaml
 import feedparser
 import httpx
+from dateutil import parser as dtparser
+
+TZ_CO = ZoneInfo("America/Bogota")
 
 DEFAULT_TIMEOUT = httpx.Timeout(connect=5.0, read=10.0, write=5.0, pool=5.0)
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; DailyOutlookBot/1.0)"}
+
 
 def load_feeds(path: str = "feeds.yml") -> List[Dict[str, Any]]:
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     return data.get("feeds", [])
 
+
+def _parse_published_dt(published: str) -> datetime | None:
+    if not published:
+        return None
+    try:
+        dt = dtparser.parse(published)
+        if dt.tzinfo is None:
+            # Si viene sin TZ, asumimos UTC (mejor que local)
+            dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+        return dt.astimezone(TZ_CO)
+    except Exception:
+        return None
+
+
 def _parse_feed(url: str) -> Any:
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; DailyOutlookBot/1.0)"}
-    with httpx.Client(timeout=DEFAULT_TIMEOUT, follow_redirects=True, headers=headers) as client:
+    # Trae el RSS con timeout real (evita cuelgues)
+    with httpx.Client(timeout=DEFAULT_TIMEOUT, follow_redirects=True, headers=HEADERS) as client:
         r = client.get(url)
         r.raise_for_status()
         return feedparser.parse(r.text)
 
+
 def fetch_rss_items(feeds: List[Dict[str, Any]], max_items: int = 50) -> List[Dict[str, Any]]:
     items: List[Dict[str, Any]] = []
+    today_co = datetime.now(TZ_CO).date()
 
     for i, feed in enumerate(feeds, start=1):
         name = feed.get("name", "Unknown")
@@ -26,7 +52,7 @@ def fetch_rss_items(feeds: List[Dict[str, Any]], max_items: int = 50) -> List[Di
         if not url:
             continue
 
-        print(f"🔎 [{i}/{len(feeds)}] RSS: {name} -> {url}", flush=True)
+        print(f"🔎 [{i}/{len(feeds)}] RSS: {name}", flush=True)
 
         try:
             parsed = _parse_feed(url)
@@ -34,25 +60,17 @@ def fetch_rss_items(feeds: List[Dict[str, Any]], max_items: int = 50) -> List[Di
             print(f"⚠️ RSS error: {name} -> {url} :: {ex}", flush=True)
             continue
 
-        status = getattr(parsed, "status", None)
-        if status is not None:
-            try:
-                if int(status) >= 400:
-                    print(f"⚠️ RSS falló HTTP {status}: {name} -> {url}", flush=True)
-                    continue
-            except Exception:
-                pass
-
-        bozo = getattr(parsed, "bozo", 0)
-        if bozo:
-            err = getattr(parsed, "bozo_exception", None)
-            if err:
-                print(f"⚠️ RSS parse warning: {name} -> {err}", flush=True)
-
         for e in getattr(parsed, "entries", [])[:max_items]:
             entry_url = e.get("link")
             title = (e.get("title") or "").strip()
-            published = e.get("published") or e.get("updated")
+            published = e.get("published") or e.get("updated") or ""
+
+            pub_dt = _parse_published_dt(published)
+
+            # ✅ Regla: si no tiene fecha, o no es HOY en Colombia, se descarta
+            if pub_dt is None or pub_dt.date() != today_co:
+                continue
+
             if not entry_url or not title:
                 continue
 
@@ -60,7 +78,7 @@ def fetch_rss_items(feeds: List[Dict[str, Any]], max_items: int = 50) -> List[Di
                 {
                     "url": entry_url,
                     "title": title,
-                    "published": published,
+                    "published": pub_dt.isoformat(),
                     "source": feed.get("name", ""),
                     "region": feed.get("region", ""),
                     "topic": feed.get("topic", ""),
