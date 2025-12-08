@@ -1,13 +1,43 @@
 from datetime import datetime
-import os
+from pathlib import Path
+import json
 
 from config import settings
 from store import connect, upsert_articles, latest_articles
 from ingest import load_feeds, fetch_rss_items
 from extract import extract_text_from_url, now_iso
-from scoring import load_moves, score as score_fn, regime_from_score
-from digest import dedupe_articles, group_articles, digest_markdown
 from prompt_builder import build_chatgpt_prompt
+
+
+def render_digest_markdown(as_of: str, articles: list[dict], max_items: int = 35) -> str:
+    lines = []
+    lines.append(f"# Daily Global Markets Digest — {as_of}")
+    lines.append("")
+    lines.append("_Auto-generated from RSS sources. Educational project._")
+    lines.append("")
+    for a in articles[:max_items]:
+        title = (a.get("title") or "").strip()
+        url = (a.get("url") or "").strip()
+        source = (a.get("source") or "").strip()
+        region = (a.get("region") or "").strip()
+        topic = (a.get("topic") or "").strip()
+        published = (a.get("published") or "").strip()
+
+        meta = " / ".join([x for x in [region, topic, source] if x])
+        pub = f" — {published}" if published else ""
+        lines.append(f"- **{title}** ({meta}){pub}")
+        if url:
+            lines.append(f"  - {url}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def load_moves(path: str = "data/market_moves.json") -> dict:
+    p = Path(path)
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text(encoding="utf-8"))
+
 
 def main():
     s = settings()
@@ -18,64 +48,36 @@ def main():
 
     enriched = []
     for it in rss_items:
-        # Optional: extract full text; comment out if you want faster runs
+        # Optional: extracting full text can be slow / blocked; keep or set text=None
         text = extract_text_from_url(it["url"])
-        enriched.append({
-            **it,
-            "text": text,
-            "fetched_at": now_iso(),
-        })
+        enriched.append({**it, "text": text, "fetched_at": now_iso()})
 
-    inserted = upsert_articles(conn, enriched)
+    upsert_articles(conn, enriched)
 
     moves_doc = load_moves("data/market_moves.json")
-    as_of = moves_doc.get("as_of") or datetime.utcnow().date().isoformat()
-    moves = moves_doc.get("moves", {})
-
-    # Score is optional but useful as metadata in the digest
-    score, _contrib = score_fn(moves)
-    regime = regime_from_score(score)
+    as_of = moves_doc.get("as_of") if isinstance(moves_doc, dict) else None
+    if not as_of:
+        as_of = datetime.utcnow().date().isoformat()
 
     articles = latest_articles(conn, limit=s.max_articles)
-    articles = dedupe_articles(articles, max_items=s.max_articles)
-    grouped = group_articles(articles)
 
-    digest_md = digest_markdown(as_of=as_of, grouped=grouped, max_per_bucket=8)
+    digest_md = render_digest_markdown(as_of=as_of, articles=articles, max_items=s.max_articles)
+    prompt_txt = build_chatgpt_prompt(digest_md=digest_md, moves=moves_doc)
 
-    # Add a small header with score/regime
-    digest_md = (
-        f"# Daily Global Markets Digest — {as_of}\n\n"
-        f"**Quant score (optional):** `{score:.2f}`\n\n"
-        f"**Regime (optional):** {regime}\n\n"
-        + "\n".join(digest_md.splitlines()[3:])  # remove duplicate title from digest_markdown
-    )
+    reports = Path("reports")
+    reports.mkdir(exist_ok=True)
 
-    prompt_txt = build_chatgpt_prompt(as_of=as_of, digest_md=digest_md, moves=moves)
+    # latest
+    (reports / "latest_digest.md").write_text(digest_md, encoding="utf-8")
+    (reports / "prompt_for_chatgpt.txt").write_text(prompt_txt, encoding="utf-8")
 
-    os.makedirs("reports", exist_ok=True)
+    # dated copies
+    (reports / f"{as_of}_digest.md").write_text(digest_md, encoding="utf-8")
+    (reports / f"{as_of}_prompt_for_chatgpt.txt").write_text(prompt_txt, encoding="utf-8")
 
-    digest_path = f"reports/{as_of}_digest.md"
-    prompt_path = f"reports/{as_of}_prompt_for_chatgpt.txt"
+    print("OK -> reports/latest_digest.md")
+    print("OK -> reports/prompt_for_chatgpt.txt")
 
-    with open(digest_path, "w", encoding="utf-8") as f:
-        f.write(digest_md)
-
-    with open(prompt_path, "w", encoding="utf-8") as f:
-        f.write(prompt_txt)
-
-    # Convenience "latest" files
-    with open("reports/latest_digest.md", "w", encoding="utf-8") as f:
-        f.write(digest_md)
-
-    with open("reports/prompt_for_chatgpt.txt", "w", encoding="utf-8") as f:
-        f.write(prompt_txt)
-
-    print(f"Inserted new articles: {inserted}")
-    print(f"Score: {score:.2f} | Regime: {regime}")
-    print(f"Wrote: {digest_path}")
-    print(f"Wrote: {prompt_path}")
-    print("Wrote: reports/latest_digest.md")
-    print("Wrote: reports/prompt_for_chatgpt.txt")
 
 if __name__ == "__main__":
     main()
