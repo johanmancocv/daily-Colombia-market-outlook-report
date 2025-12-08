@@ -1,11 +1,10 @@
-
 from datetime import datetime
 from pathlib import Path
 import json
 import re
+from zoneinfo import ZoneInfo
 
-from store import connect, upsert_articles
-
+from store import connect, upsert_articles, latest_articles
 from market_moves import update_market_moves
 
 from config import settings
@@ -127,16 +126,13 @@ def main():
     if not as_of:
         as_of = datetime.utcnow().date().isoformat()
 
-    # 5) Usar lo descargado HOY en este run (evita arrastrar noticias viejas del SQLite)
-    articles = filtered
-    from zoneinfo import ZoneInfo
-    TZ_CO = ZoneInfo("America/Bogota")
-    news_date = datetime.now(TZ_CO).date().isoformat()
+    # 5) Usar lo descargado HOY en este run; si viene vacío, fallback a BD pero SOLO HOY
+    news_date = datetime.now(ZoneInfo("America/Bogota")).date().isoformat()
 
-    articles = filtered
-    if not articles:
-        articles = latest_articles_for_date(conn, day=news_date, limit=s.max_articles)
-    
+    candidates = latest_articles(conn, limit=s.max_articles * 5)
+    today_only = [a for a in candidates if (a.get("published") or "")[:10] == news_date]
+
+    articles = filtered if filtered else today_only[:s.max_articles]
 
     # 6) Dedupe + group + render digest
     deduped = dedupe_articles(articles, max_items=s.max_articles)
