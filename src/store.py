@@ -71,3 +71,21 @@ def save_report(conn: sqlite3.Connection, as_of: str, model: str, score: float, 
         (as_of, model, score, json_str, created_at)
     )
     conn.commit()
+
+def latest_articles_for_date(conn: sqlite3.Connection, day: str, limit: int = 50):
+    """
+    day: 'YYYY-MM-DD' (Bogotá). Devuelve SOLO artículos de ese día.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT source, region, topic, title, url, published
+        FROM articles
+        WHERE substr(COALESCE(published, fetched_at), 1, 10) = ?
+        ORDER BY COALESCE(published, fetched_at) DESC
+        LIMIT ?
+        """,
+        (day, limit),
+    )
+    cols = [c[0] for c in cur.description]
+    return [dict(zip(cols, row)) for row in cur.fetchall()]
