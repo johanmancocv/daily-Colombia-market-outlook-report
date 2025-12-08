@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from datetime import datetime
@@ -140,19 +139,13 @@ def update_market_moves(out_path: Path) -> dict:
         except Exception:
             moves[key] = None
 
-    # 2) USD/COP fallback if stooq failed
+    # 2) USD/COP fallback (level only) if stooq failed
+    usdcop_level: float | None = None
     if moves.get("usdcop") is None:
         try:
-            # Here we can't compute % change without yesterday; best effort:
-            # try stooq again but if no prev, keep None
-            usd_cop = _fetch_usdcop_fallback()
-            # Without previous close, we leave pct as None (better than inventing).
-            # If you later want % change, we can store level too.
-            if usd_cop is not None:
-                # store level in a separate field
-                pass
+            usdcop_level = _fetch_usdcop_fallback()
         except Exception:
-            pass
+            usdcop_level = None
 
     # 3) US10Y (bp)
     try:
@@ -164,15 +157,15 @@ def update_market_moves(out_path: Path) -> dict:
 
     doc = {
         "as_of": as_of,
-        # percent moves (None => your prompt should show N/D ideally)
+        # percent moves (None => N/D)
         "brent": moves.get("brent"),
-        "usdcop": moves.get("usdcop"),
+        "usdcop": moves.get("usdcop"),          # % change si Stooq lo da
+        "usdcop_level": usdcop_level,           # nivel si tocó fallback
         "dxy": moves.get("dxy"),
         "vix": moves.get("vix"),
         "eem": moves.get("eem"),
         # basis points move
         "us10y_bp": us10y_bp,
-        # helpful metadata
         "source": "stooq+fred",
         "generated_at": datetime.now(TZ_CO).isoformat(),
     }
