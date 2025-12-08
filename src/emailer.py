@@ -2,7 +2,7 @@ import os
 import smtplib
 import html
 from email.message import EmailMessage
-from typing import List
+from typing import List, Optional, Tuple
 
 
 def _env(name: str) -> str:
@@ -12,10 +12,16 @@ def _env(name: str) -> str:
     return v
 
 
-def send_email(subject: str, body: str, to_emails: List[str]) -> None:
+def send_email(
+    subject: str,
+    body: str,
+    to_emails: List[str],
+    attachments: Optional[List[Tuple[str, bytes, str]]] = None,  # (filename, content, mime)
+) -> None:
     """
-    Sends multipart email (plain text + HTML).
-    The HTML part uses <pre> so Gmail won't collapse it behind "Show quoted text".
+    Sends multipart email (plain text + HTML) and optional attachments.
+    - HTML uses <pre> to reduce Gmail collapsing.
+    - Attachments prevent losing content due to Gmail trimming.
     """
     host = _env("SMTP_HOST")
     port = int(os.getenv("SMTP_PORT", "587"))
@@ -31,7 +37,7 @@ def send_email(subject: str, body: str, to_emails: List[str]) -> None:
     # Plain text fallback
     msg.set_content(body)
 
-    # HTML version (prevents Gmail "Show quoted text" collapsing)
+    # HTML version (helps avoid Gmail "quoted text" collapse)
     body_html = f"""\
 <html>
   <body>
@@ -42,6 +48,12 @@ def send_email(subject: str, body: str, to_emails: List[str]) -> None:
 </html>
 """
     msg.add_alternative(body_html, subtype="html")
+
+    # Attachments (filename, bytes, mime like "text/plain")
+    for att in attachments or []:
+        filename, content, mime = att
+        maintype, subtype = mime.split("/", 1)
+        msg.add_attachment(content, maintype=maintype, subtype=subtype, filename=filename)
 
     with smtplib.SMTP(host, port) as server:
         server.starttls()
