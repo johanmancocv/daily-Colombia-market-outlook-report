@@ -1,23 +1,63 @@
 feeds:
-  # --- Global (RSS oficiales) ---
+  # -----------------------
+  # GLOBAL (RSS directos)
+  # -----------------------
   - name: "BBC Business"
-    region: "GLOBAL"
+    region: "GB"
     topic: "macro"
     url: "https://feeds.bbci.co.uk/news/business/rss.xml"
 
-  # WSJ tiene directorio de RSS (según sección) — el tuyo funciona para markets
-  - name: "WSJ Markets"
+  - name: "Reuters Business"
+    region: "GLOBAL"
+    topic: "markets"
+    url: "http://feeds.reuters.com/reuters/businessNews"
+
+  - name: "WSJ Business (RSS)"
     region: "US"
     topic: "markets"
-    url: "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+    url: "http://online.wsj.com/xml/rss/3_7031.xml"
 
-  # FT RSS (puede depender de región/suscripción)
-  - name: "Financial Times (News Feed)"
-    region: "EU"
+  - name: "Forbes Markets (RSS)"
+    region: "US"
     topic: "markets"
-    url: "https://www.ft.com/news-feed?format=rss"
+    url: "https://www.forbes.com/markets/index.xml"
 
-  # --- Colombia (RSS oficiales) ---
+  - name: "Business Insider (RSS)"
+    region: "US"
+    topic: "markets"
+    url: "https://feeds2.feedburner.com/businessinsider"
+
+  # Nasdaq: feeds por categoría (si quieres más, cambias category=...)
+  - name: "Nasdaq (Category: Markets)"
+    region: "US"
+    topic: "markets"
+    url: "https://www.nasdaq.com/feed/rssoutbound?category=Markets"
+
+  - name: "Nasdaq (Category: Stocks)"
+    region: "US"
+    topic: "stocks"
+    url: "https://www.nasdaq.com/feed/rssoutbound?category=Stocks"
+
+  - name: "Nasdaq (Category: Economy)"
+    region: "US"
+    topic: "macro"
+    url: "https://www.nasdaq.com/feed/rssoutbound?category=Economy"
+
+  # NasdaqTrader: headlines/alertas del mercado (útil para “news flow”)
+  - name: "NasdaqTrader - Current Headlines"
+    region: "US"
+    topic: "market_data"
+    url: "https://nasdaqtrader.com/rss.aspx?categorylist=0&feed=currentheadlines"
+
+  # CNN tiene RSS pero a veces falla por región/headers; si te da problemas, usa el fallback de Google News abajo
+  - name: "CNN Business (RSS)"
+    region: "US"
+    topic: "markets"
+    url: "https://rss.cnn.com/rss/edition_business.rss"
+
+  # -----------------------
+  # COLOMBIA (RSS directos)
+  # -----------------------
   - name: "Portafolio - Economía"
     region: "CO"
     topic: "macro"
@@ -28,18 +68,207 @@ feeds:
     topic: "markets"
     url: "http://portafolio.co/rss/economia/finanzas.xml"
 
-  - name: "Portafolio - Negocios"
+# ---- Colombia: mercado / índices / bolsa ----
+  - name: "GoogleNews CO - Bolsa (COLCAP, BVC, acciones) 24h"
     region: "CO"
-    topic: "business"
-    url: "http://portafolio.co/rss/negocios.xml"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=(COLCAP%20OR%20ICOLCAP%20OR%20BVC%20OR%20%22Bolsa%20de%20Valores%20de%20Colombia%22%20OR%20acciones)%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
 
-  # BanRep (tienes dos opciones útiles)
-  - name: "BanRep - Noticias (listado RSS)"
+  - name: "GoogleNews CO - Resultados empresariales / utilidades 7d"
+    region: "CO"
+    topic: "companies"
+    url: "https://news.google.com/rss/search?q=(%22resultados%22%20OR%20%22utilidad%22%20OR%20%22EBITDA%22%20OR%20%22dividendo%22)%20(Colombia%20OR%20BVC%20OR%20COLCAP)%20when:7d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  # ---- Colombia: FX / TRM / USD-COP ----
+  - name: "GoogleNews CO - TRM / USD-COP 24h"
+    region: "CO"
+    topic: "fx"
+    url: "https://news.google.com/rss/search?q=(TRM%20OR%20%22d%C3%B3lar%20en%20Colombia%22%20OR%20USD%2FCOP%20OR%20%22peso%20colombiano%22)%20when:1d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  # ---- Colombia: BanRep / tasas / política monetaria ----
+  - name: "GoogleNews CO - Banco de la República (tasas, junta) 14d"
     region: "CO"
     topic: "policy"
-    url: "https://www.banrep.gov.co/es/noticias-rss"
+    url: "https://news.google.com/rss/search?q=(%22Banco%20de%20la%20Rep%C3%BAblica%22%20OR%20BanRep)%20(tasa%20OR%20tasas%20OR%20junta%20OR%20inflaci%C3%B3n)%20when:14d&hl=es-419&gl=CO&ceid=CO:es-419"
 
-  - name: "BanRep - Blog (RSS 2.0)"
+  # ---- Colombia: macro (inflación, PIB, empleo) ----
+  - name: "GoogleNews CO - Inflación / IPC / tasas 7d"
     region: "CO"
-    topic: "policy"
-    url: "https://www.banrep.gov.co/rss-blog.xml"
+    topic: "macro"
+    url: "https://news.google.com/rss/search?q=(inflaci%C3%B3n%20OR%20IPC%20OR%20%22costo%20de%20vida%22)%20Colombia%20when:7d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  - name: "GoogleNews CO - PIB / crecimiento / actividad económica 30d"
+    region: "CO"
+    topic: "macro"
+    url: "https://news.google.com/rss/search?q=(PIB%20OR%20crecimiento%20OR%20%22actividad%20econ%C3%B3mica%22)%20Colombia%20when:30d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  - name: "GoogleNews CO - Empleo / desempleo / salarios 30d"
+    region: "CO"
+    topic: "macro"
+    url: "https://news.google.com/rss/search?q=(empleo%20OR%20desempleo%20OR%20salario%20m%C3%ADnimo)%20Colombia%20when:30d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  # ---- Colombia: petróleo / energía (muy relevante por Ecopetrol) ----
+  - name: "GoogleNews CO - Ecopetrol 14d"
+    region: "CO"
+    topic: "companies"
+    url: "https://news.google.com/rss/search?q=Ecopetrol%20when:14d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  - name: "GoogleNews CO - Petróleo Brent + Colombia 7d"
+    region: "CO"
+    topic: "commodities"
+    url: "https://news.google.com/rss/search?q=(Brent%20OR%20petr%C3%B3leo)%20Colombia%20when:7d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  # ---- Colombia: bancos (sensibles a tasas y riesgo) ----
+  - name: "GoogleNews CO - Bancolombia + Grupo Aval + Davivienda 14d"
+    region: "CO"
+    topic: "banks"
+    url: "https://news.google.com/rss/search?q=(Bancolombia%20OR%20%22Grupo%20Aval%22%20OR%20Davivienda)%20when:14d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  # ---- Colombia: holdings/industriales del COLCAP ----
+  - name: "GoogleNews CO - Grupo Sura / Argos / Nutresa / ISA 30d"
+    region: "CO"
+    topic: "companies"
+    url: "https://news.google.com/rss/search?q=(%22Grupo%20Sura%22%20OR%20%22Cementos%20Argos%22%20OR%20Nutresa%20OR%20ISA)%20when:30d&hl=es-419&gl=CO&ceid=CO:es-419"
+
+  # ---- Colombia: riesgo país / bonos / CDS ----
+  - name: "GoogleNews CO - Riesgo país / CDS / bonos Colombia 30d"
+    region: "CO"
+    topic: "rates"
+    url: "https://news.google.com/rss/search?q=(%22riesgo%20pa%C3%ADs%22%20OR%20CDS%20OR%20bonos)%20Colombia%20when:30d&hl=es-419&gl=CO&ceid=CO:es-419"
+  # -----------------------
+  # FALLBACK (Google News RSS)
+  # Útil para: Bloomberg, Economist, Bloomberg Línea, La República, Cambio, El Espectador, etc.
+  # Formato base: https://news.google.com/rss/search?q=...
+  # -----------------------
+  - name: "Bloomberg (via Google News RSS)"
+    region: "GLOBAL"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Abloomberg.com+markets"
+
+  - name: "The Economist (via Google News RSS)"
+    region: "GLOBAL"
+    topic: "macro"
+    url: "https://news.google.com/rss/search?q=site%3Aeconomist.com+finance+economics"
+
+  - name: "Bloomberg Línea (via Google News RSS)"
+    region: "LATAM"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Abloomberglinea.com+colombia+mercados"
+
+  - name: "La República (CO) (via Google News RSS)"
+    region: "CO"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Alarepublica.co+bolsa+colombia"
+
+  - name: "CAMBIO Colombia (via Google News RSS)"
+    region: "CO"
+    topic: "macro"
+    url: "https://news.google.com/rss/search?q=site%3Acambiocolombia.com+economia"
+
+  - name: "El Espectador (via Google News RSS)"
+    region: "CO"
+    topic: "macro"
+    url: "https://news.google.com/rss/search?q=site%3Aelespectador.com+economia+colombia"
+
+    feeds:
+  # -----------------------
+  # ASIA - CHINA (Google News RSS por dominio)
+  # -----------------------
+  - name: "Caixin Global (China) (via Google News RSS)"
+    region: "CN"
+    topic: "macro"
+    url: "https://news.google.com/rss/search?q=site%3Acaixinglobal.com+(china+OR+PBoC+OR+yuan)+(market+OR+stocks+OR+economy)&hl=en-US&gl=US&ceid=US:en"
+
+  - name: "Yicai Global (China) (via Google News RSS)"
+    region: "CN"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Ayicaiglobal.com+(china+OR+yuan)+(stocks+OR+markets+OR+economy)&hl=en-US&gl=US&ceid=US:en"
+
+  # AA Financial News / AASTOCKS (China/HK market news)
+  - name: "AASTOCKS (CN/HK) (via Google News RSS)"
+    region: "HK"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Aaastocks.com+(market+OR+stocks+OR+hang+seng+OR+hong+kong)&hl=en-US&gl=US&ceid=US:en"
+
+  # -----------------------
+  # ASIA - HONG KONG (mezcla de RSS oficiales + Google News)
+  # -----------------------
+
+  # HKEX tiene RSS oficial (news releases, etc.). Ejemplo de “News Releases”.  [oai_citation:0‡HKEX](https://www.hkex.com.hk/Services/RSS-Feeds?sc_lang=en&utm_source=chatgpt.com)
+  - name: "HKEX - News Releases (RSS oficial)"
+    region: "HK"
+    topic: "market_data"
+    url: "https://www.hkex.com.hk/Services/RSS-Feeds/News-Releases?sc_lang=en"
+
+  # The Standard tiene RSS directo (inglés).  [oai_citation:1‡GitHub](https://github.com/plenaryapp/awesome-rss-feeds?utm_source=chatgpt.com)
+  - name: "The Standard (HK) - Latest News (RSS)"
+    region: "HK"
+    topic: "markets"
+    url: "https://www.thestandard.com.hk/newsfeed/latest/news.xml"
+
+  # HKET tiene página RSS (y feeds por secciones).  [oai_citation:2‡hket.com](https://www.hket.com/rss?utm_source=chatgpt.com)
+  - name: "Hong Kong Economic Times (HKET) (RSS portal)"
+    region: "HK"
+    topic: "markets"
+    url: "https://www.hket.com/rss"
+
+  - name: "HKET - Hong Kong News (RSS)"
+    region: "HK"
+    topic: "markets"
+    url: "https://www.hket.com/rss/hongkong"
+
+  # HKEJ: no te doy un RSS directo porque muchas veces no es público/estable; usa Google News por dominio.
+  - name: "Hong Kong Economic Journal (HKEJ) (via Google News RSS)"
+    region: "HK"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Ahkej.com+(stocks+OR+market+OR+hong+kong+OR+hang+seng)&hl=en-US&gl=US&ceid=US:en"
+
+  # SCMP: su portal RSS a menudo bloquea bots; usa Google News o sus feeds “google_assistant” si te sirven.  [oai_citation:3‡South China Morning Post](https://www.scmp.com/rss/google_assistant/325477/media_rss.xml?article-type=513586&utm_source=chatgpt.com)
+  - name: "SCMP (Hong Kong/Asia) (via Google News RSS)"
+    region: "HK"
+    topic: "macro"
+    url: "https://news.google.com/rss/search?q=site%3Ascmp.com+(economy+OR+markets+OR+china+economy+OR+asia+stocks)&hl=en-US&gl=US&ceid=US:en"
+
+  - name: "SCMP (google_assistant feed example)"
+    region: "HK"
+    topic: "macro"
+    url: "https://www.scmp.com/rss/google_assistant/325477/media_rss.xml?article-type=513586"
+
+  # -----------------------
+  # ASIA - JAPAN (Nikkei: mejor vía Google News por accesos/robots)
+  # -----------------------
+  - name: "Nikkei Asia (Japan) (via Google News RSS)"
+    region: "JP"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Aasia.nikkei.com+(nikkei+225+OR+japan+stocks+OR+boj+OR+yen)&hl=en-US&gl=US&ceid=US:en"
+
+  # -----------------------
+  # ASIA - SOUTH KOREA (RSS reales + Google News)
+  # -----------------------
+
+  # Korea Times tiene RSS (Business/Economy).  [oai_citation:4‡The Korea Times](https://www.koreatimes.co.kr/rss?utm_source=chatgpt.com)
+  - name: "The Korea Times - Business (RSS)"
+    region: "KR"
+    topic: "companies"
+    url: "https://feed.koreatimes.co.kr/k/business.xml"
+
+  - name: "The Korea Times - Economy (RSS)"
+    region: "KR"
+    topic: "macro"
+    url: "https://feed.koreatimes.co.kr/k/economy.xml"
+
+  # Korea Herald: su página RSS puede bloquear; usa Google News por dominio como fallback.  [oai_citation:5‡Korea Herald](https://www.koreaherald.com/rss?utm_source=chatgpt.com)
+  - name: "The Korea Herald (via Google News RSS)"
+    region: "KR"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Akoreaherald.com+(kospi+OR+korea+stocks+OR+won+OR+bank+of+korea)&hl=en-US&gl=US&ceid=US:en"
+
+  # -----------------------
+  # ASIA - TAIWAN (CNYES)
+  # -----------------------
+
+  # CNYES menciona RSS/XML como oferta tipo partnership/API (no siempre público gratis). Mejor Google News por dominio.  [oai_citation:6‡Cnyes Campaign](https://campaign.cnyes.com/topics/anuedatabase/news.html?utm_source=chatgpt.com)
+  - name: "CNYES (Taiwan) (via Google News RSS)"
+    region: "TW"
+    topic: "markets"
+    url: "https://news.google.com/rss/search?q=site%3Anews.cnyes.com+(taiwan+OR+taiex+OR+tsmc+OR+stocks+OR+fx)&hl=en-US&gl=US&ceid=US:en"
