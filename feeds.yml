@@ -170,7 +170,6 @@ feeds:
     topic: "macro"
     url: "https://news.google.com/rss/search?q=site%3Aelespectador.com+economia+colombia"
 
-    feeds:
   # -----------------------
   # ASIA - CHINA (Google News RSS por dominio)
   # -----------------------
