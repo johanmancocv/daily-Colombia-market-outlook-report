@@ -155,16 +155,23 @@ def main():
 Movimientos de mercado (as_of={as_of}) ya están incluidos dentro del prompt adjunto.
 """
 
-    send_email(
-        subject=f"📈 Prompt de Mercados Colombia — {as_of}",
-        body=body_short,
-        to_emails=["eljj.personal@gmail.com"],
-        attachments=[
-            ("prompt_for_chatgpt.txt", prompt_bytes, "text/plain"),
-            ("latest_digest.txt", digest_bytes, "text/plain"),
-        ],
-    )
-    print("OK -> email enviado a eljj.personal@gmail.com")
+    # ✅ Envío 1 a 1 (nadie ve a quién más se envió)
+    recipients = [
+        "eljj.personal@gmail.com",
+        
+    ]
+
+    for r in recipients:
+        send_email(
+            subject=f"📈 Prompt de Mercados Colombia — {as_of}",
+            body=body_short,
+            to_emails=[r],
+            attachments=[
+                ("prompt_for_chatgpt.txt", prompt_bytes, "text/plain"),
+                ("latest_digest.txt", digest_bytes, "text/plain"),
+            ],
+        )
+        print(f"OK -> email enviado a {r}")
 
     # 8) Write outputs (ruta robusta)
     reports = project_root / "reports"
