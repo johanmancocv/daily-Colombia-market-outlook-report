@@ -83,14 +83,13 @@ def _pct_change(last: float | None, prev: float | None) -> float | None:
 
 def _fetch_usdcop_fallback() -> float | None:
     """
-    Fallback USD->COP using open.er-api.com
+    Fallback USD->COP using open.er-api.com (level only)
     """
     with httpx.Client(timeout=DEFAULT_TIMEOUT, headers=HEADERS, follow_redirects=True) as client:
         r = client.get(ER_API_USD)
         r.raise_for_status()
         data = r.json()
 
-    # typical payload: {"rates": {"COP": 4xxx, ...}}
     rates = data.get("rates") if isinstance(data, dict) else None
     if not isinstance(rates, dict):
         return None
@@ -130,18 +129,22 @@ def update_market_moves(out_path: Path) -> dict:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 1) Stooq-based pct moves
+    # 1) Stooq-based pct moves + last levels
     moves: dict[str, float | None] = {}
+    levels: dict[str, float | None] = {}
+
     for key, sym in STOOQ_MAP.items():
         try:
             last, prev = _stooq_last_two_closes(sym)
+            levels[key] = last
             moves[key] = _pct_change(last, prev)
         except Exception:
+            levels[key] = None
             moves[key] = None
 
     # 2) USD/COP fallback (level only) if stooq failed
     usdcop_level: float | None = None
-    if moves.get("usdcop") is None:
+    if levels.get("usdcop") is None:
         try:
             usdcop_level = _fetch_usdcop_fallback()
         except Exception:
@@ -157,16 +160,29 @@ def update_market_moves(out_path: Path) -> dict:
 
     doc = {
         "as_of": as_of,
-        # percent moves (None => N/D)
-        "brent": moves.get("brent"),
-        "usdcop": moves.get("usdcop"),          # % change si Stooq lo da
-        "usdcop_level": usdcop_level,           # nivel si tocó fallback
+
+        # Brent
+        "brent": moves.get("brent"),              # % change (si hay 2 cierres)
+        "brent_level": levels.get("brent"),       # último nivel disponible
+
+        # USD/COP
+        "usdcop": moves.get("usdcop"),            # % change si Stooq lo da
+        "usdcop_level": usdcop_level if usdcop_level is not None else levels.get("usdcop"),
+
+        # DXY / VIX / EEM
         "dxy": moves.get("dxy"),
+        "dxy_level": levels.get("dxy"),
+
         "vix": moves.get("vix"),
+        "vix_level": levels.get("vix"),
+
         "eem": moves.get("eem"),
-        # basis points move
+        "eem_level": levels.get("eem"),
+
+        # US10Y (bp change)
         "us10y_bp": us10y_bp,
-        "source": "stooq+fred",
+
+        "source": "stooq+fred(+er-api for usdcop level)",
         "generated_at": datetime.now(TZ_CO).isoformat(),
     }
 
