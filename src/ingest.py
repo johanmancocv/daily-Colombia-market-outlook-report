@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import yaml
@@ -44,7 +44,10 @@ def _parse_feed(url: str) -> Any:
 
 def fetch_rss_items(feeds: List[Dict[str, Any]], max_items: int = 50) -> List[Dict[str, Any]]:
     items: List[Dict[str, Any]] = []
-    today_co = datetime.now(TZ_CO).date()
+
+    # ✅ Ventana: últimas 24 horas (hora Colombia)
+    now_co = datetime.now(TZ_CO)
+    window_start = now_co - timedelta(hours=24)
 
     for i, feed in enumerate(feeds, start=1):
         name = feed.get("name", "Unknown")
@@ -67,8 +70,8 @@ def fetch_rss_items(feeds: List[Dict[str, Any]], max_items: int = 50) -> List[Di
 
             pub_dt = _parse_published_dt(published)
 
-            # ✅ Regla: si no tiene fecha, o no es HOY en Colombia, se descarta
-            if pub_dt is None or pub_dt.date() != today_co:
+            # ✅ Regla: si no tiene fecha, o NO está dentro de las últimas 24h, se descarta
+            if pub_dt is None or not (window_start <= pub_dt <= now_co):
                 continue
 
             if not entry_url or not title:
