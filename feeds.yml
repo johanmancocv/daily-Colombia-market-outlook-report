@@ -1,0 +1,16 @@
+feeds:
+  - name: "BBC Business"
+    region: "EU"
+    topic: "macro"
+    url: "https://feeds.bbci.co.uk/news/business/rss.xml"
+
+  - name: "WSJ Markets"
+    region: "US"
+    topic: "markets"
+    url: "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+
+  # FT supports RSS via news-feed format=rss (may require access depending on region/subscription)
+  - name: "FT News Feed"
+    region: "EU"
+    topic: "markets"
+    url: "https://www.ft.com/news-feed?format=rss"
