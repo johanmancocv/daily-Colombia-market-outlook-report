@@ -4,12 +4,11 @@ from pathlib import Path
 import json
 import re
 
-from store import connect, upsert_articles, latest_articles_for_date
+from store import connect, upsert_articles
 
 from market_moves import update_market_moves
 
 from config import settings
-from store import connect, upsert_articles, latest_articles
 from ingest import load_feeds, fetch_rss_items
 from extract import now_iso
 from prompt_builder import build_chatgpt_prompt
