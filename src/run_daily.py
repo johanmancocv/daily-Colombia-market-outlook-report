@@ -50,7 +50,7 @@ def main():
     enriched = []
     for it in rss_items:
         # Optional: extracting full text can be slow / blocked; keep or set text=None
-        text = extract_text_from_url(it["url"])
+        text = None
         enriched.append({**it, "text": text, "fetched_at": now_iso()})
 
     upsert_articles(conn, enriched)
