@@ -41,6 +41,31 @@ REGION_ALIASES = {
 
 REGIONS_ORDER = ["ASIA", "EU", "US", "LATAM", "CO", "GLOBAL", "OTHER"]
 
+# Labels shown in the digest (Spanish)
+REGION_LABELS_ES = {
+    "ASIA": "Asia",
+    "EU": "Europa / Reino Unido",
+    "US": "Estados Unidos",
+    "LATAM": "Latinoamérica",
+    "CO": "Colombia",
+    "GLOBAL": "Global",
+    "OTHER": "Otros",
+}
+
+TOPIC_LABELS_ES = {
+    "markets": "Mercados",
+    "macro": "Macro",
+    "policy": "Política monetaria / Gobierno",
+    "fx": "Divisas (FX)",
+    "rates": "Tasas / Bonos",
+    "commodities": "Materias primas",
+    "stocks": "Acciones",
+    "companies": "Empresas",
+    "banks": "Bancos",
+    "market_data": "Datos de mercado",
+    "general": "General",
+}
+
 
 def _norm(s: str) -> str:
     s = (s or "").lower().strip()
@@ -86,11 +111,15 @@ def group_articles(articles: List[Dict[str, Any]]) -> Dict[str, Dict[str, List[D
     return grouped
 
 
-def digest_markdown(as_of: str, grouped: Dict[str, Dict[str, List[Dict[str, Any]]]], max_per_bucket: int = 8) -> str:
+def digest_markdown(
+    as_of: str,
+    grouped: Dict[str, Dict[str, List[Dict[str, Any]]]],
+    max_per_bucket: int = 8
+) -> str:
     md = []
-    md.append(f"# Daily Global Markets Digest — {as_of}")
+    md.append(f"# Digest Diario de Mercados Globales — {as_of}")
     md.append("")
-    md.append("_Auto-generated from RSS sources. Educational project._")
+    md.append("_Generado automáticamente desde fuentes RSS. Proyecto educativo._")
     md.append("")
 
     # Regions in the order you want to see them
@@ -98,15 +127,20 @@ def digest_markdown(as_of: str, grouped: Dict[str, Dict[str, List[Dict[str, Any]
         if region not in grouped:
             continue
 
-        md.append(f"## {region}")
+        md.append(f"## {REGION_LABELS_ES.get(region, region)}")
         topics = grouped[region]
 
         # Show topics in a sensible order if present
-        preferred_topics = ["markets", "macro", "policy", "fx", "rates", "commodities", "stocks", "companies", "banks", "market_data", "general"]
-        topics_order = [t for t in preferred_topics if t in topics] + sorted([t for t in topics.keys() if t not in preferred_topics])
+        preferred_topics = [
+            "markets", "macro", "policy", "fx", "rates", "commodities",
+            "stocks", "companies", "banks", "market_data", "general"
+        ]
+        topics_order = [t for t in preferred_topics if t in topics] + sorted(
+            [t for t in topics.keys() if t not in preferred_topics]
+        )
 
         for topic in topics_order:
-            md.append(f"### {topic}")
+            md.append(f"### {TOPIC_LABELS_ES.get(topic, topic)}")
             for a in topics[topic][:max_per_bucket]:
                 title = (a.get("title") or "").strip()
                 url = (a.get("url") or "").strip()
