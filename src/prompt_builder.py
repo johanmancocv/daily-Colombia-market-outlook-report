@@ -1,12 +1,28 @@
 from datetime import date
 
+
 def build_chatgpt_prompt(digest_md: str, moves: dict | None = None) -> str:
     moves = moves or {}
     as_of = moves.get("as_of", str(date.today()))
-    m = moves.get("moves", {}) if isinstance(moves, dict) else {}
 
-    def g(key, default="N/D"):
-        return m.get(key, default)
+    def fmt_pct(pct: float | None, level: float | None, level_label: str | None = None) -> str:
+        if pct is not None:
+            return f"{pct:.2f}%"
+        if level is not None:
+            if level_label:
+                return f"N/D (nivel: {level:,.2f} {level_label})"
+            return f"N/D (nivel: {level:,.2f})"
+        return "N/D"
+
+    def fmt_bp(bp: float | None) -> str:
+        return "N/D" if bp is None else f"{bp:.1f} bp"
+
+    brent_txt = fmt_pct(moves.get("brent"), moves.get("brent_level"), "USD")
+    usdcop_txt = fmt_pct(moves.get("usdcop"), moves.get("usdcop_level"), "COP")
+    dxy_txt = fmt_pct(moves.get("dxy"), moves.get("dxy_level"))
+    vix_txt = fmt_pct(moves.get("vix"), moves.get("vix_level"))
+    eem_txt = fmt_pct(moves.get("eem"), moves.get("eem_level"), "USD")
+    us10y_txt = fmt_bp(moves.get("us10y_bp"))
 
     return f"""📌 COPIA Y PEGA ESTE PROMPT EN CHATGPT:
 
@@ -31,12 +47,12 @@ Entrega EXACTAMENTE en este formato:
 7) Limitaciones (1 párrafo)
 
 Movimientos de mercado (as_of={as_of}):
-- Brent: {g("BRENT_pct")}%
-- USD/COP: {g("USD_COP_pct")}%
-- US10Y: {g("US10Y_bp")} bp
-- DXY: {g("DXY_pct")}%
-- VIX: {g("VIX_pct")}%
-- EEM: {g("EEM_pct")}%
+- Brent: {brent_txt}
+- USD/COP: {usdcop_txt}
+- US10Y: {us10y_txt}
+- DXY: {dxy_txt}
+- VIX: {vix_txt}
+- EEM: {eem_txt}
 
 Digest de noticias (con links):
 {digest_md}
