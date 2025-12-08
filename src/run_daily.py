@@ -132,7 +132,7 @@ def main():
 
     # ✅ 7.5) Send email with the prompt
     send_email(
-        subject=f"📈 Colombia Market Prompt — {as_of}",
+        subject=f"📈 Prompt de Mercados Colombia — {as_of}",
         body=prompt_txt,
         to_emails=["eljj.personal@gmail.com"],
     )
@@ -148,10 +148,10 @@ def main():
     (reports / f"{as_of}_digest.md").write_text(digest_md, encoding="utf-8")
     (reports / f"{as_of}_prompt_for_chatgpt.txt").write_text(prompt_txt, encoding="utf-8")
 
-    print(f"Fetched RSS items: {len(rss_items)}")
-    print(f"After noise filter: {len(filtered)}")
-    print("OK -> reports/latest_digest.md")
-    print("OK -> reports/prompt_for_chatgpt.txt")
+    print(f"Ítems RSS obtenidos:{len(rss_items)}")
+    print(f"Después del filtro anti-ruido: {len(filtered)}")
+    print("OK -> reports/latest_digest.md (digest generado)")
+    print("OK -> reports/prompt_for_chatgpt.txt (prompt generado)")
 
 
 if __name__ == "__main__":
