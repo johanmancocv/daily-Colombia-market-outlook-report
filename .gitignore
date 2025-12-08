@@ -143,6 +143,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.env.*
+!.env.example
 
 # Spyder project settings
 .spyderproject
@@ -205,3 +207,18 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local SQLite DB files (project)
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite3-journal
+*.wal
+*.shm
+
+# Generated reports
+reports/
+
+.DS_Store
+
+.vscode/
