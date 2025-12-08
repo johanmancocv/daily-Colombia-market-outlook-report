@@ -3,6 +3,8 @@ from pathlib import Path
 import json
 import re
 
+from market_moves import update_market_moves
+
 from config import settings
 from store import connect, upsert_articles, latest_articles
 from ingest import load_feeds, fetch_rss_items
@@ -23,7 +25,6 @@ NEGATIVE_PATTERNS = [
     r"\b(opinion|column|editorial|podcast)\b",
 ]
 
-# If any of these appear, we KEEP even if it contains some generic words
 POSITIVE_PATTERNS = [
     r"\b(stocks?|equities|shares?|bonds?|yields?|treasur(?:y|ies)|credit|spreads?)\b",
     r"\b(markets?|futures?|index|indices|nasdaq|s&p|dow|nikkei|hang seng|kospi|taiex)\b",
@@ -38,7 +39,6 @@ POSITIVE_PATTERNS = [
 NEG_RE = re.compile("|".join(NEGATIVE_PATTERNS), re.IGNORECASE)
 POS_RE = re.compile("|".join(POSITIVE_PATTERNS), re.IGNORECASE)
 
-# Optional: drop obvious tracking params in URLs
 URL_NOISE_PATTERNS = [
     "utm_source=",
     "utm_medium=",
@@ -55,15 +55,10 @@ def is_noise_item(item: dict) -> bool:
 
     hay = " ".join([title, url, source]).lower()
 
-    # Keep if clearly relevant (positive match)
     if POS_RE.search(hay):
         return False
-
-    # Drop if clearly noise (negative match)
     if NEG_RE.search(hay):
         return True
-
-    # If neither positive nor negative matched, keep (conservative).
     return False
 
 
@@ -76,22 +71,26 @@ def clean_url(url: str) -> str:
     return url
 
 
-def load_moves(path: str = "data/market_moves.json") -> dict:
-    p = Path(path)
-    if not p.exists():
+def load_moves(path: Path) -> dict:
+    if not path.exists():
         return {}
-    return json.loads(p.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def main():
     s = settings()
+
+    # ✅ Root del proyecto (…/workspace si src está en /workspace/src)
+    project_root = Path(__file__).resolve().parent.parent
+
     conn = connect(s.db_path)
 
-    # 1) Load feeds + fetch RSS items
-    feeds = load_feeds("feeds.yml")
+    # 1) Load feeds + fetch RSS items (ruta robusta)
+    feeds_path = project_root / "feeds.yml"
+    feeds = load_feeds(str(feeds_path))
     rss_items = fetch_rss_items(feeds, max_items=25)
 
-    # 1.5) Anti-noise filter (title/url/source based)
+    # 1.5) Anti-noise filter
     filtered = []
     for it in rss_items:
         it = dict(it)
@@ -104,7 +103,7 @@ def main():
 
         filtered.append(it)
 
-    # 2) DO NOT extract full text (faster + less blocking)
+    # 2) DO NOT extract full text
     enriched = []
     fetched_at = now_iso()
     for it in filtered:
@@ -113,13 +112,17 @@ def main():
     # 3) Store in SQLite
     upsert_articles(conn, enriched)
 
-    # 4) Figure out "as_of"
-    moves_doc = load_moves("data/market_moves.json")
+    # ✅ 4) Actualiza market moves del día (antes de leer el JSON)
+    moves_path = project_root / "data" / "market_moves.json"
+    update_market_moves(moves_path)
+
+    # 4.1) Load moves + as_of
+    moves_doc = load_moves(moves_path)
     as_of = moves_doc.get("as_of") if isinstance(moves_doc, dict) else None
     if not as_of:
         as_of = datetime.utcnow().date().isoformat()
 
-    # 5) Pull latest articles (already stored)
+    # 5) Pull latest stored articles
     articles = latest_articles(conn, limit=s.max_articles)
 
     # 6) Dedupe + group + render digest
@@ -127,10 +130,10 @@ def main():
     grouped = group_articles(deduped)
     digest_md = digest_markdown(as_of=as_of, grouped=grouped, max_per_bucket=8)
 
-    # 7) Build the prompt for ChatGPT copy/paste
+    # 7) Build prompt
     prompt_txt = build_chatgpt_prompt(digest_md=digest_md, moves=moves_doc)
 
-    # ✅ 7.5) Send email with the prompt
+    # 7.5) Send email
     send_email(
         subject=f"📈 Prompt de Mercados Colombia — {as_of}",
         body=prompt_txt,
@@ -138,8 +141,8 @@ def main():
     )
     print("OK -> email enviado a eljj.personal@gmail.com")
 
-    # 8) Write outputs
-    reports = Path("reports")
+    # 8) Write outputs (ruta robusta)
+    reports = project_root / "reports"
     reports.mkdir(exist_ok=True)
 
     (reports / "latest_digest.md").write_text(digest_md, encoding="utf-8")
@@ -148,7 +151,7 @@ def main():
     (reports / f"{as_of}_digest.md").write_text(digest_md, encoding="utf-8")
     (reports / f"{as_of}_prompt_for_chatgpt.txt").write_text(prompt_txt, encoding="utf-8")
 
-    print(f"Ítems RSS obtenidos:{len(rss_items)}")
+    print(f"Ítems RSS obtenidos: {len(rss_items)}")
     print(f"Después del filtro anti-ruido: {len(filtered)}")
     print("OK -> reports/latest_digest.md (digest generado)")
     print("OK -> reports/prompt_for_chatgpt.txt (prompt generado)")
