@@ -2,6 +2,7 @@ import os
 import smtplib
 import html
 from email.message import EmailMessage
+from email.utils import formatdate, make_msgid
 from typing import List, Optional, Tuple
 
 
@@ -20,8 +21,7 @@ def send_email(
 ) -> None:
     """
     Sends multipart email (plain text + HTML) and optional attachments.
-    - HTML uses <pre> to reduce Gmail collapsing.
-    - Attachments prevent losing content due to Gmail trimming.
+    Goal: avoid Gmail collapsing the body as "quoted text".
     """
     host = _env("SMTP_HOST")
     port = int(os.getenv("SMTP_PORT", "587"))
@@ -34,16 +34,31 @@ def send_email(
     msg["From"] = email_from
     msg["To"] = ", ".join(to_emails)
 
+    # Make it look like a "new" message (helps Gmail not treat as reply/quote)
+    msg["Date"] = formatdate(localtime=True)
+    msg["Message-ID"] = make_msgid()
+    msg["X-Entity-Ref-ID"] = make_msgid()  # harmless, sometimes helps threading heuristics
+
+    # If anything sets these (threading), remove them
+    if "In-Reply-To" in msg:
+        del msg["In-Reply-To"]
+    if "References" in msg:
+        del msg["References"]
+
     # Plain text fallback
     msg.set_content(body)
 
-    # HTML version (helps avoid Gmail "quoted text" collapse)
+    # HTML version: use DIV (NOT <pre>) but preserve whitespace
+    safe = html.escape(body)
     body_html = f"""\
 <html>
   <body>
-    <pre style="white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 13px; line-height: 1.35;">
-{html.escape(body)}
-    </pre>
+    <div style="
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.35;
+    ">{safe}</div>
   </body>
 </html>
 """
@@ -56,6 +71,8 @@ def send_email(
         msg.add_attachment(content, maintype=maintype, subtype=subtype, filename=filename)
 
     with smtplib.SMTP(host, port) as server:
+        server.ehlo()
         server.starttls()
+        server.ehlo()
         server.login(user, password)
         server.send_message(msg)
