@@ -1,3 +1,4 @@
+
 from datetime import datetime
 from pathlib import Path
 import json
@@ -112,9 +113,12 @@ def main():
     # 3) Store in SQLite
     upsert_articles(conn, enriched)
 
-    # ✅ 4) Actualiza market moves del día (antes de leer el JSON)
+    # ✅ actualiza market moves del día (pero NO mates el run si falla)
     moves_path = project_root / "data" / "market_moves.json"
-    update_market_moves(moves_path)
+    try:
+        update_market_moves(moves_path)
+    except Exception as e:
+        print(f"⚠️ market_moves falló (se continúa igual): {e}", flush=True)
 
     # 4.1) Load moves + as_of
     moves_doc = load_moves(moves_path)
