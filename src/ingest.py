@@ -63,7 +63,8 @@ def _parse_feed(url: str) -> Any:
 
 def fetch_rss_items(feeds: List[Dict[str, Any]], max_items: int = 50) -> List[Dict[str, Any]]:
     items: List[Dict[str, Any]] = []
-    cutoff = datetime.now(TZ_CO) - timedelta(hours=LAST_HOURS)
+    now = datetime.now(TZ_CO)
+    cutoff = now.replace(hour=0, minute=0, second=0, microsecond=0)  # ✅ solo HOY
 
     for i, feed in enumerate(feeds, start=1):
         name = feed.get("name", "Unknown")
