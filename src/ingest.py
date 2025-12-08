@@ -5,23 +5,17 @@ import httpx
 
 DEFAULT_TIMEOUT = httpx.Timeout(connect=5.0, read=10.0, write=5.0, pool=5.0)
 
-
 def load_feeds(path: str = "feeds.yml") -> List[Dict[str, Any]]:
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     return data.get("feeds", [])
 
-
 def _parse_feed(url: str) -> Any:
-    """
-    Descarga el RSS con timeout real (evita que se quede colgado) y luego lo parsea con feedparser.
-    """
     headers = {"User-Agent": "Mozilla/5.0 (compatible; DailyOutlookBot/1.0)"}
     with httpx.Client(timeout=DEFAULT_TIMEOUT, follow_redirects=True, headers=headers) as client:
         r = client.get(url)
         r.raise_for_status()
         return feedparser.parse(r.text)
-
 
 def fetch_rss_items(feeds: List[Dict[str, Any]], max_items: int = 50) -> List[Dict[str, Any]]:
     items: List[Dict[str, Any]] = []
