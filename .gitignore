@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+*.pyc
+
+.replit
+
+.venv/
+
 # Distribution / packaging
 .Python
 build/
@@ -215,6 +221,8 @@ __marimo__/
 *.sqlite3-journal
 *.wal
 *.shm
+
+data/market_moves.json
 
 # Generated reports
 reports/
