@@ -2,12 +2,12 @@ from datetime import datetime
 import os
 
 from config import settings
-from store import connect, upsert_articles, latest_articles, save_report
+from store import connect, upsert_articles, latest_articles
 from ingest import load_feeds, fetch_rss_items
 from extract import extract_text_from_url, now_iso
 from scoring import load_moves, score as score_fn, regime_from_score
-from llm import build_prompt, generate_structured_report
-from render import to_markdown, pretty_json
+from digest import dedupe_articles, group_articles, digest_markdown
+from prompt_builder import build_chatgpt_prompt
 
 def main():
     s = settings()
@@ -18,6 +18,7 @@ def main():
 
     enriched = []
     for it in rss_items:
+        # Optional: extract full text; comment out if you want faster runs
         text = extract_text_from_url(it["url"])
         enriched.append({
             **it,
@@ -31,37 +32,50 @@ def main():
     as_of = moves_doc.get("as_of") or datetime.utcnow().date().isoformat()
     moves = moves_doc.get("moves", {})
 
-    score, contrib = score_fn(moves)
+    # Score is optional but useful as metadata in the digest
+    score, _contrib = score_fn(moves)
     regime = regime_from_score(score)
 
     articles = latest_articles(conn, limit=s.max_articles)
+    articles = dedupe_articles(articles, max_items=s.max_articles)
+    grouped = group_articles(articles)
 
-    prompt = build_prompt(
-        as_of=as_of,
-        score=score,
-        regime=regime,
-        contrib=contrib,
-        articles=articles,
-        moves=moves
+    digest_md = digest_markdown(as_of=as_of, grouped=grouped, max_per_bucket=8)
+
+    # Add a small header with score/regime
+    digest_md = (
+        f"# Daily Global Markets Digest — {as_of}\n\n"
+        f"**Quant score (optional):** `{score:.2f}`\n\n"
+        f"**Regime (optional):** {regime}\n\n"
+        + "\n".join(digest_md.splitlines()[3:])  # remove duplicate title from digest_markdown
     )
 
-    report = generate_structured_report(model=s.openai_model, prompt=prompt)
+    prompt_txt = build_chatgpt_prompt(as_of=as_of, digest_md=digest_md, moves=moves)
 
     os.makedirs("reports", exist_ok=True)
-    json_path = f"reports/{as_of}.json"
-    md_path = f"reports/{as_of}.md"
 
-    with open(json_path, "w", encoding="utf-8") as f:
-        f.write(pretty_json(report))
+    digest_path = f"reports/{as_of}_digest.md"
+    prompt_path = f"reports/{as_of}_prompt_for_chatgpt.txt"
 
-    with open(md_path, "w", encoding="utf-8") as f:
-        f.write(to_markdown(as_of, score, report))
+    with open(digest_path, "w", encoding="utf-8") as f:
+        f.write(digest_md)
 
-    save_report(conn, as_of=as_of, model=s.openai_model, score=score, json_str=pretty_json(report), created_at=now_iso())
+    with open(prompt_path, "w", encoding="utf-8") as f:
+        f.write(prompt_txt)
+
+    # Convenience "latest" files
+    with open("reports/latest_digest.md", "w", encoding="utf-8") as f:
+        f.write(digest_md)
+
+    with open("reports/prompt_for_chatgpt.txt", "w", encoding="utf-8") as f:
+        f.write(prompt_txt)
 
     print(f"Inserted new articles: {inserted}")
-    print(f"Wrote: {json_path}")
-    print(f"Wrote: {md_path}")
+    print(f"Score: {score:.2f} | Regime: {regime}")
+    print(f"Wrote: {digest_path}")
+    print(f"Wrote: {prompt_path}")
+    print("Wrote: reports/latest_digest.md")
+    print("Wrote: reports/prompt_for_chatgpt.txt")
 
 if __name__ == "__main__":
     main()
