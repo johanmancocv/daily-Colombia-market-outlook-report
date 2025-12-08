@@ -4,6 +4,8 @@ from pathlib import Path
 import json
 import re
 
+from store import connect, upsert_articles, latest_articles_for_date
+
 from market_moves import update_market_moves
 
 from config import settings
@@ -126,8 +128,16 @@ def main():
     if not as_of:
         as_of = datetime.utcnow().date().isoformat()
 
-    # 5) Pull latest stored articles
-    articles = latest_articles(conn, limit=s.max_articles)
+    # 5) Usar lo descargado HOY en este run (evita arrastrar noticias viejas del SQLite)
+    articles = filtered
+    from zoneinfo import ZoneInfo
+    TZ_CO = ZoneInfo("America/Bogota")
+    news_date = datetime.now(TZ_CO).date().isoformat()
+
+    articles = filtered
+    if not articles:
+        articles = latest_articles_for_date(conn, day=news_date, limit=s.max_articles)
+    
 
     # 6) Dedupe + group + render digest
     deduped = dedupe_articles(articles, max_items=s.max_articles)
