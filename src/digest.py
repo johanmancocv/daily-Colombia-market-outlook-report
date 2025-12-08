@@ -2,11 +2,58 @@ from typing import List, Dict, Any
 from collections import defaultdict
 import re
 
+# Map regions from feeds.yml to "buckets" shown in the report
+REGION_ALIASES = {
+    # Europe / UK
+    "EU": "EU",
+    "GB": "EU",
+    "UK": "EU",
+
+    # US
+    "US": "US",
+    "USA": "US",
+
+    # LatAm
+    "LATAM": "LATAM",
+
+    # Colombia
+    "CO": "CO",
+    "COL": "CO",
+    "COLOMBIA": "CO",
+
+    # Asia
+    "ASIA": "ASIA",
+    "CN": "ASIA",
+    "CHINA": "ASIA",
+    "HK": "ASIA",
+    "HONGKONG": "ASIA",
+    "JP": "ASIA",
+    "JAPAN": "ASIA",
+    "KR": "ASIA",
+    "KOREA": "ASIA",
+    "TW": "ASIA",
+    "TAIWAN": "ASIA",
+
+    # Global catch-all
+    "GLOBAL": "GLOBAL",
+    "WORLD": "GLOBAL",
+}
+
+REGIONS_ORDER = ["ASIA", "EU", "US", "LATAM", "CO", "GLOBAL", "OTHER"]
+
+
 def _norm(s: str) -> str:
     s = (s or "").lower().strip()
     s = re.sub(r"\s+", " ", s)
     s = re.sub(r"[^a-z0-9\s\-:/().]", "", s)
     return s
+
+
+def _bucket_region(region: str) -> str:
+    r = (region or "").strip().upper()
+    r = re.sub(r"\s+", "", r)  # normalize "Hong Kong" -> "HONGKONG"
+    return REGION_ALIASES.get(r, "OTHER")
+
 
 def dedupe_articles(articles: List[Dict[str, Any]], max_items: int = 50) -> List[Dict[str, Any]]:
     seen = set()
@@ -21,39 +68,56 @@ def dedupe_articles(articles: List[Dict[str, Any]], max_items: int = 50) -> List
             break
     return out
 
+
 def group_articles(articles: List[Dict[str, Any]]) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
-    # returns {region: {topic: [articles...]}}
+    """
+    returns {bucket_region: {topic: [articles...]}}
+    where bucket_region is one of: ASIA, EU, US, LATAM, CO, GLOBAL, OTHER
+    """
     grouped: Dict[str, Dict[str, List[Dict[str, Any]]]] = defaultdict(lambda: defaultdict(list))
     for a in articles:
-        region = a.get("region", "OTHER") or "OTHER"
+        raw_region = a.get("region", "") or ""
+        region = _bucket_region(raw_region)
+
         topic = a.get("topic", "general") or "general"
+        topic = (topic or "").strip().lower()
+
         grouped[region][topic].append(a)
     return grouped
+
 
 def digest_markdown(as_of: str, grouped: Dict[str, Dict[str, List[Dict[str, Any]]]], max_per_bucket: int = 8) -> str:
     md = []
     md.append(f"# Daily Global Markets Digest — {as_of}")
     md.append("")
-    md.append("_Auto-generated from RSS/scraped sources. Educational project._")
+    md.append("_Auto-generated from RSS sources. Educational project._")
     md.append("")
 
-    regions_order = ["ASIA", "EU", "US", "LATAM", "CO", "OTHER"]
-    for region in regions_order:
+    # Regions in the order you want to see them
+    for region in REGIONS_ORDER:
         if region not in grouped:
             continue
+
         md.append(f"## {region}")
         topics = grouped[region]
-        for topic in sorted(topics.keys()):
+
+        # Show topics in a sensible order if present
+        preferred_topics = ["markets", "macro", "policy", "fx", "rates", "commodities", "stocks", "companies", "banks", "market_data", "general"]
+        topics_order = [t for t in preferred_topics if t in topics] + sorted([t for t in topics.keys() if t not in preferred_topics])
+
+        for topic in topics_order:
             md.append(f"### {topic}")
             for a in topics[topic][:max_per_bucket]:
-                title = a.get("title", "").strip()
-                url = a.get("url", "").strip()
-                source = a.get("source", "").strip()
+                title = (a.get("title") or "").strip()
+                url = (a.get("url") or "").strip()
+                source = (a.get("source") or "").strip()
                 published = (a.get("published") or "").strip()
                 pub_txt = f" — {published}" if published else ""
+
                 md.append(f"- **{title}** ({source}){pub_txt}")
                 if url:
                     md.append(f"  - {url}")
             md.append("")
+
         md.append("")
     return "\n".join(md)
