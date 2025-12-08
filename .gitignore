@@ -222,3 +222,6 @@ reports/
 .DS_Store
 
 .vscode/
+
+Thumbs.db
+.idea/
