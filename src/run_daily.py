@@ -132,7 +132,7 @@ def main():
     candidates = latest_articles(conn, limit=s.max_articles * 5)
     today_only = [a for a in candidates if (a.get("published") or "")[:10] == news_date]
 
-    articles = filtered if filtered else today_only[:s.max_articles]
+    articles = filtered if filtered else today_only[: s.max_articles]
 
     # 6) Dedupe + group + render digest
     deduped = dedupe_articles(articles, max_items=s.max_articles)
@@ -142,23 +142,22 @@ def main():
     # 7) Build prompt
     prompt_txt = build_chatgpt_prompt(digest_md=digest_md, moves=moves_doc)
 
-    # 7.5) Send email (cuerpo corto + adjuntos para evitar recortes de Gmail)
+    # 7.5) Send email (cuerpo corto + adjuntos para evitar recortes/quoted text de Gmail)
     digest_bytes = digest_md.encode("utf-8")
     prompt_bytes = prompt_txt.encode("utf-8")
 
-    body_short = f"""📌 PROMPT PARA CHATGPT (ver adjunto)
+    # Ojo: cuerpo corto (Gmail no lo colapsa) + adjuntos con TODO el contenido
+    body_short = f"""\
+📌 PROMPT PARA CHATGPT (ver adjunto)
 
-Hola, soy Johan. Te comparto un prompt con contexto del día sobre mercados/finanzas para que lo pegues en ChatGPT y obtengas un análisis actualizado.
-
+Instrucciones:
 1) Abre el adjunto: prompt_for_chatgpt.txt
 2) Copia y pega TODO en ChatGPT
-3) (Opcional) Revisa el adjunto latest_digest.txt para ver las noticias y links
+3) (Opcional) Revisa latest_digest.txt para ver las noticias y links
 
-Si prefieres recibir el análisis completo ya redactado (sin abrir archivos ni copiar/pegar), existe una opción de suscripción/servicio pago para automatizar ese paso. Si te interesa, dime y te comparto los detalles.
+Disclaimer: Contenido educativo/informativo, NO es asesoría financiera.
 
-Disclaimer/Aviso legal: Contenido educativo/informativo, no es asesoría financiera. Decisiones bajo tu responsabilidad. Si quieres un análisis más detallado, escríbeme.
-
-Movimientos de mercado (Al día de hoy={as_of}) ya están incluidos dentro del prompt adjunto.
+As of (Colombia): {as_of}
 """
 
     # ✅ Envío 1 a 1 (nadie ve a quién más se envió)
@@ -166,7 +165,6 @@ Movimientos de mercado (Al día de hoy={as_of}) ya están incluidos dentro del p
         "eljj.personal@gmail.com",
         "alexandermanco@gmail.com",
         "zharicksalasf@gmail.com",
-        
     ]
 
     for r in recipients:
