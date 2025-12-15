@@ -164,7 +164,6 @@ As of (Colombia): {as_of}
     recipients = [
         "eljj.personal@gmail.com",
         "alexandermanco@gmail.com",
-        "zharicksalasf@gmail.com",
     ]
 
     for r in recipients:
